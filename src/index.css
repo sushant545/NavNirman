@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-dark: #1a1a1a;
+  --color-brand-gold: #c5a059;
+  --color-brand-gray: #f3f4f6;
+}
+
+/* Keep your existing font and body styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+:root {
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  /* Now Tailwind knows what brand-dark is */
+  @apply bg-white text-brand-dark antialiased;
+}
+
+html {
+  scroll-behavior: smooth;
+}
