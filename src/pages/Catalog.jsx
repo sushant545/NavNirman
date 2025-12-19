@@ -4,40 +4,69 @@ import { fetchData } from '../utils/sheets';
 
 const Catalog = () => {
   const [products, setProducts] = useState([]);
+  const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
 
+  // The EXACT Categories you requested
+  const categories = [
+    'All',
+    'GRC Panel (Jali)',
+    'GRC Capitals and Columns',
+    'GRC Cladding',
+    'GRC Dome',
+    'GRC Balusters',
+    'GRC Cornice'
+  ];
+
   useEffect(() => {
-    // This will fetch from your Google Sheet eventually
     fetchData('products').then(data => {
       setProducts(data);
       setLoading(false);
-    }).catch(() => {
-      // Fallback if sheet is not connected yet
-      setProducts([
-        { name: "Decorative GRC Jali", category: "Facade", description: "Premium mesh design for ventilation and aesthetics.", image_url: "https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&q=80", features: "High Strength" },
-        { name: "Column Cladding", category: "Structural", description: "Durable GRC wraps for structural columns.", image_url: "https://images.unsplash.com/photo-1590483734724-3881744a338e?auto=format&fit=crop&q=80", features: "Weatherproof" }
-      ]);
+    }).catch(err => {
+      console.log("Sheet not connected yet, using fallback");
       setLoading(false);
     });
   }, []);
 
-  return (
-    <div className="py-20 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4">
-        <header className="text-center mb-16">
-          <h1 className="text-5xl font-bold mb-4">Product Exploration</h1>
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg">Browse our digital catalog of GRC elements designed for the modern builder.</p>
-        </header>
+  // Filter Logic
+  const filteredProducts = filter === 'All' 
+    ? products 
+    : products.filter(p => p.category === filter);
 
-        {loading ? (
-          <div className="text-center py-20">Loading our finest work...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {products.map((item, index) => (
-              <ProductCard key={index} product={item} />
-            ))}
-          </div>
-        )}
+  return (
+    <div className="py-16 bg-white min-h-screen">
+      <div className="max-w-7xl mx-auto px-4">
+        <h1 className="text-center text-4xl font-bold mb-12">Product Catalog</h1>
+
+        {/* Categories Filter Bar */}
+        <div className="flex flex-wrap justify-center gap-3 mb-16">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setFilter(cat)}
+              className={`px-5 py-2 text-sm font-bold uppercase tracking-wide border transition-all duration-300
+                ${filter === cat 
+                  ? 'bg-brand-gold text-white border-brand-gold' 
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-brand-dark hover:text-brand-dark'
+                }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Product Grid */}
+        <div className="grid md:grid-cols-3 gap-8">
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product, idx) => (
+              <ProductCard key={idx} product={product} />
+            ))
+          ) : (
+            <div className="col-span-3 text-center py-10 text-gray-400">
+              No products found in {filter} category yet.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
