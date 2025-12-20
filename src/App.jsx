@@ -1,27 +1,30 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar'; // Ensure you have this
+import Footer from './components/Footer'; // Ensure you have this
 import Home from './pages/Home';
-import Catalog from './pages/Catalog';
-import Contact from './pages/Contact';
-import Projects from './pages/Projects'; 
+import Projects from './pages/Projects';
+import Contact from './pages/Contact'; // Ensure you have this
+import ProjectDetail from './pages/ProjectDetail'; // <--- THIS WAS LIKELY MISSING
 
 function App() {
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/catalog" element={<Catalog />} />
-            <Route path="/projects" element={<Projects />} /> {/* NEW ROUTE */}
-            <Route path="/contact" element={<Contact />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/projects" element={<Projects />} />
+          
+          {/* Dynamic Route for Project Details */}
+          <Route path="/projects/:slug" element={<ProjectDetail />} />
+          
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
   );
 }
+
 export default App;
