@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
+/* 1. Define your custom theme variables for v4 */
 @theme {
   --color-brand-dark: #1a1a1a;
   --color-brand-gold: #c5a059;
   --color-brand-gray: #f3f4f6;
 }
 
-/* Keep your existing font and body styles */
+/* 2. Global Resets */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
 :root {
@@ -16,10 +17,6 @@
 body {
   margin: 0;
   padding: 0;
-  /* Now Tailwind knows what brand-dark is */
+  /* This @apply will now work because brand-dark is defined above */
   @apply bg-white text-brand-dark antialiased;
-}
-
-html {
-  scroll-behavior: smooth;
 }
