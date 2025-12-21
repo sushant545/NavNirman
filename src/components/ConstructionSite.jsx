@@ -51,7 +51,7 @@ const ConstructionSite = () => {
   ];
 
   return (
-    // CHANGED: Added Technical Grid Background & darkened bg color for contrast
+    // Technical Grid Background
     <div 
       className="w-full py-12 border-y border-gray-300 relative bg-slate-50"
       style={{
@@ -59,12 +59,11 @@ const ConstructionSite = () => {
         backgroundSize: '24px 24px'
       }}
     >
-      {/* Overlay to fade grid edges slightly (Optional aesthetic touch) */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 via-transparent to-slate-50/50 pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         
-        {/* Header with Background Pill for readability */}
+        {/* Header */}
         <div className="text-center mb-10">
           <div className="inline-block bg-white/80 backdrop-blur-sm px-6 py-2 rounded-full border border-gray-200 shadow-sm mb-4">
             <span className="text-brand-gold font-bold tracking-widest uppercase text-xs block">
@@ -76,7 +75,7 @@ const ConstructionSite = () => {
           </h2>
         </div>
 
-        {/* Grid Cards - Added shadow-lg to pop against the grid */}
+        {/* Grid Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {steps.map((step) => (
             <div 
@@ -127,7 +126,7 @@ const ConstructionSite = () => {
   );
 };
 
-// --- ANIMATIONS (Unchanged) ---
+// --- ANIMATIONS ---
 
 const BlueprintAnimation = ({ isActive }) => (
   <div className="w-full h-full relative bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
@@ -163,7 +162,7 @@ const MouldAnimation = ({ isActive }) => (
 
 const TransportAnimation = ({ isActive }) => (
   <div className="w-full h-full flex flex-col justify-end bg-orange-50 overflow-hidden relative pb-2">
-    <div className="absolute top-2 left-10 text-orange-200 text-xs">🏭 Factory</div>
+    {/* REMOVED: The "Factory" text div has been deleted from here */}
     <div className={`absolute bottom-3 transition-all duration-[4000ms] linear flex items-end z-10 ${isActive ? 'left-[120%]' : 'left-[-120px]'}`}>
       <div className="w-24 h-5 bg-gray-700 relative flex items-end -mr-1">
           <div className="absolute bottom-5 left-2 flex gap-1">

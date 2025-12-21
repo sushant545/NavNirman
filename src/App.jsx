@@ -1,11 +1,18 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar'; // Ensure you have this
-import Footer from './components/Footer'; // Ensure you have this
+
+// COMPONENTS
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+
+// PAGES
 import Home from './pages/Home';
 import Projects from './pages/Projects';
-import Contact from './pages/Contact'; // Ensure you have this
-import ProjectDetail from './pages/ProjectDetail'; // <--- THIS WAS LIKELY MISSING
+import Contact from './pages/Contact';
+import ProjectDetail from './pages/ProjectDetail';
+
+// ✅ 1. IMPORT THE CATALOG PAGE (Crucial)
+import Catalog from './pages/Catalog'; 
 
 function App() {
   return (
@@ -14,11 +21,12 @@ function App() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
+          
+          {/* ✅ 2. REGISTER THE CATALOG ROUTE (Crucial) */}
+          <Route path="/catalog" element={<Catalog />} />
+          
           <Route path="/projects" element={<Projects />} />
-          
-          {/* Dynamic Route for Project Details */}
           <Route path="/projects/:slug" element={<ProjectDetail />} />
-          
           <Route path="/contact" element={<Contact />} />
         </Routes>
       </main>

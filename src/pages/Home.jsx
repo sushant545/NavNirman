@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Anchor, ShieldCheck, Ruler, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+// COMPONENTS
 import Hero from '../components/Hero';
 import ConstructionSite from '../components/ConstructionSite';
+import ClientLogos from '../components/ClientLogos'; // The new logos section
+
+// UTILS
 import { fetchData } from '../utils/sheets';
 
 const Home = () => {
@@ -12,6 +17,7 @@ const Home = () => {
     const loadProjects = async () => {
       try {
         const data = await fetchData('project');
+        // Get the first 3 projects for the preview
         if (data && Array.isArray(data)) {
           setRecentProjects(data.slice(0, 3));
         }
@@ -24,9 +30,11 @@ const Home = () => {
 
   return (
     <div className="overflow-hidden bg-white">
+      
+      {/* 1. HERO CAROUSEL */}
       <Hero />
 
-      {/* --- COMPACT FEATURES SECTION --- */}
+      {/* 2. COMPACT FEATURES SECTION */}
       <section className="py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           {/* Header */}
@@ -60,12 +68,12 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- WORKFLOW / 3D SECTION --- */}
+      {/* 3. WORKFLOW / 3D ANIMATION SECTION */}
       <section className="bg-white">
          <ConstructionSite />
       </section>
 
-      {/* --- PORTFOLIO PREVIEW --- */}
+      {/* 4. PORTFOLIO PREVIEW SECTION */}
       <section className="py-16 bg-white border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-end mb-10">
            <div>
@@ -102,11 +110,15 @@ const Home = () => {
             <Link to="/projects" className="font-bold text-brand-gold text-sm">View All Projects →</Link>
         </div>
       </section>
+
+      {/* 5. CLIENT LOGOS SCROLL (Last Section) */}
+      <ClientLogos />
+
     </div>
   );
 };
 
-// Compact Feature Card Component
+// --- Sub-Component: Feature Card ---
 const FeatureCard = ({ icon, title, desc }) => (
   <div className="bg-gray-50 p-5 rounded-lg border border-transparent hover:border-brand-gold hover:bg-white hover:shadow-lg transition-all duration-300 group text-center md:text-left">
     <div className="text-gray-400 mb-3 group-hover:text-brand-gold transition-colors duration-300 flex justify-center md:justify-start">

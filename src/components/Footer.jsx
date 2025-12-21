@@ -4,23 +4,23 @@ import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin, ArrowRight } from '
 
 const Footer = () => {
   return (
-    // Reduced top padding from pt-16 to pt-10 for compact height
     <footer className="bg-gray-900 text-white pt-10 pb-6 border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4">
         
         {/* Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
 
-          {/* 1. Brand / Logo Section (Text Removed) */}
+          {/* 1. Brand / Logo Section */}
           <div className="flex flex-col items-start">
             <Link to="/" className="inline-block mb-4">
+              {/* ✅ UPDATED: Removed the 'filter' so the original Gold color shows */}
               <img 
-                src="https://i.ibb.co/q30pjtv4/Gemini-Generated-Image-uty2d5uty2d5uty2-removebg-preview.png" 
+                src="https://i.ibb.co/vCt1Kqmm/Gemini-Generated-Image-jxvl6yjxvl6yjxvl-1-removebg-preview.png" 
                 alt="NavNirman Logo" 
-                className="h-20 w-auto object-contain" 
+                className="h-24 w-auto object-contain" 
               />
             </Link>
-            {/* Social Icons moved up since text is gone */}
+            
             <div className="flex gap-4 mt-2">
               <SocialIcon icon={<Facebook size={18} />} />
               <SocialIcon icon={<Instagram size={18} />} />
@@ -39,7 +39,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* 3. Our Services */}
+          {/* 3. Expertise */}
           <div>
             <h3 className="text-base font-bold mb-4 text-brand-gold">Expertise</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
@@ -88,7 +88,6 @@ const Footer = () => {
 };
 
 // --- Helper Components ---
-
 const FooterLink = ({ to, text }) => (
   <li>
     <Link to={to} className="text-gray-400 hover:text-brand-gold transition-colors text-sm flex items-center gap-2 group">
