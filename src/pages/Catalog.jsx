@@ -5,7 +5,7 @@ import { fetchData } from '../utils/sheets';
 const Catalog = () => {
   const [products, setProducts] = useState([]);
   const [filter, setFilter] = useState('All');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Default is true (loading started)
 
   // The EXACT Categories you requested
   const categories = [
@@ -21,10 +21,10 @@ const Catalog = () => {
   useEffect(() => {
     fetchData('products').then(data => {
       setProducts(data);
-      setLoading(false);
+      setLoading(false); // Stop loading when data arrives
     }).catch(err => {
       console.log("Sheet not connected yet, using fallback");
-      setLoading(false);
+      setLoading(false); // Stop loading even if error
     });
   }, []);
 
@@ -55,18 +55,34 @@ const Catalog = () => {
           ))}
         </div>
 
-        {/* Product Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {filteredProducts.length > 0 ? (
-            filteredProducts.map((product, idx) => (
-              <ProductCard key={idx} product={product} />
-            ))
+        {/* Product Grid Area */}
+        <div className="min-h-[300px]"> {/* Min-height prevents layout shift */}
+          
+          {/* 1. LOADING STATE */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              {/* Spinning Loader */}
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-brand-gold mb-4"></div>
+              <p className="text-gray-400 font-medium animate-pulse">Loading architectural elements...</p>
+            </div>
           ) : (
-            <div className="col-span-3 text-center py-10 text-gray-400">
-              No products found in {filter} category yet.
+            
+            /* 2. LOADED STATE */
+            <div className="grid md:grid-cols-3 gap-8">
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product, idx) => (
+                  <ProductCard key={idx} product={product} />
+                ))
+              ) : (
+                /* 3. EMPTY STATE (Only shows if loading is done AND list is empty) */
+                <div className="col-span-3 text-center py-10 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                  <p>No products found in <strong>{filter}</strong> category yet.</p>
+                </div>
+              )}
             </div>
           )}
         </div>
+
       </div>
     </div>
   );
