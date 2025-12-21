@@ -23,7 +23,9 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    // ✅ CHANGED: Reduced padding from 'pt-48' to 'pt-36'
+    // This exactly matches the h-36 navbar height, eliminating the white gap.
+    <div className="min-h-screen bg-white pt-36">
       
       {/* 1. HERO HEADER */}
       <div className="bg-gray-900 text-white py-20 relative overflow-hidden">
@@ -79,22 +81,20 @@ const Contact = () => {
               </a>
             </div>
 
-            {/* GOOGLE MAP EMBED - Updated to Rithoj, Gurugram */}
-            <div className="bg-gray-100 rounded-xl overflow-hidden h-80 shadow-inner border border-gray-200 relative group">
+            {/* GOOGLE MAP EMBED - Rithoj, Gurugram */}
+        <div className="bg-gray-100 rounded-xl overflow-hidden h-80 shadow-inner border border-gray-200 relative group">
               <iframe 
-                title="NavNirman Location"
+                title="NavNirman Location" 
                 width="100%" 
                 height="100%" 
                 frameBorder="0" 
                 style={{ border: 0 }} 
-                // Updated Map Link for Rithoj, Gurugram
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3514.896798031448!2d77.059444!3d28.290833!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d23a1a1a1a1a1%3A0x1a1a1a1a1a1a1a1a!2sMohan%20Ram%20Mandir%2C%20Rithoj!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" 
-                allowFullScreen
-                className="grayscale group-hover:grayscale-0 transition-all duration-500"
+                allowFullScreen 
+                // ✅ CHANGED: Removed 'grayscale' and 'group-hover' classes
+                className="w-full h-full"
               ></iframe>
-              <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded shadow text-xs font-bold pointer-events-none">
-                 📍 NavNirman HQ (Rithoj)
-              </div>
+              <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded shadow text-xs font-bold pointer-events-none">📍 NavNirman HQ (Rithoj)</div>
             </div>
           </div>
 

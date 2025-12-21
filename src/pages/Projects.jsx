@@ -51,8 +51,8 @@ const Projects = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="bg-gray-50 pt-32 pb-16 border-b border-gray-200">
+      {/* Header - UPDATED PADDING HERE: pt-32 -> pt-48 */}
+      <div className="bg-gray-50 pt-48 pb-16 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <span className="text-brand-gold font-bold tracking-widest uppercase text-sm mb-3 block">Our Portfolio</span>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Crafting Landmarks</h1>
@@ -61,7 +61,7 @@ const Projects = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="sticky top-20 z-30 bg-white/90 backdrop-blur-md border-b border-gray-100 py-4">
+      <div className="sticky top-36 z-30 bg-white/90 backdrop-blur-md border-b border-gray-100 py-4">
         <div className="max-w-7xl mx-auto px-4 overflow-x-auto">
           <div className="flex justify-center min-w-max gap-2">
             {categories.map((cat) => (

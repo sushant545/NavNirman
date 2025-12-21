@@ -41,14 +41,10 @@ const Hero = () => {
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
-    <div className="w-full bg-white pt-4 pb-8">
+    <div className="w-full bg-white pt-40 pb-8">
       
-      {/* CHANGED: 
-         1. Removed 'max-w-...' restriction.
-         2. Used 'mx-4 md:mx-6' to give just a little gap on the edges.
-         3. Kept rounded-3xl for the floating card look.
-      */}
-      <div className="relative h-[85vh] mx-4 md:mx-6 overflow-hidden rounded-3xl shadow-2xl group">
+      {/* ✅ CHANGED: Height reduced from 'h-[85vh]' to 'h-[75vh]' */}
+      <div className="relative h-[80vh] mx-4 md:mx-6 overflow-hidden rounded-3xl shadow-2xl group">
         
         {/* Slides */}
         {slides.map((slide, index) => (
