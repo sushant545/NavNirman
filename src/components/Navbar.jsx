@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, X, Menu, MessageSquare, ArrowUpRight } from 'lucide-react';
+import { Search, X, Menu, MessageSquare, ArrowUpRight, Download } from 'lucide-react';
 import { fetchData } from '../utils/sheets';
 
 const Navbar = () => {
@@ -115,6 +115,15 @@ const Navbar = () => {
               <NavLink to="/projects" text="Projects" />
             </div>
 
+            {/* ✅ NEW: Download Catalog Button */}
+            <a 
+              href="https://drive.google.com/uc?export=download&id=1gbhYtzSBX9iKtYXS2hla9d76FJyzsM9M" 
+              className="text-gray-300 hover:text-brand-gold font-bold text-sm uppercase tracking-wider transition-colors flex items-center gap-2"
+              title="Download PDF Catalog"
+            >
+              <Download size={18} /> <span className="hidden xl:inline">Catalog PDF</span>
+            </a>
+
             {/* Quote Button */}
             <Link 
               to="/contact" 
@@ -226,12 +235,18 @@ const Navbar = () => {
                 className="w-full bg-gray-800 text-white border border-gray-700 rounded-lg p-3 mb-4 text-sm focus:outline-none focus:border-brand-gold"
                 onChange={handleSearch}
              />
-             {/* Mobile Results could be rendered here similarly */}
           </div>
           <div className="px-4 pb-6 space-y-2">
             <MobileNavLink to="/" text="Home" onClick={() => setIsOpen(false)} />
             <MobileNavLink to="/catalog" text="Catalog" onClick={() => setIsOpen(false)} />
             <MobileNavLink to="/projects" text="Projects" onClick={() => setIsOpen(false)} />
+            {/* Mobile Download Link */}
+            <a 
+              href="https://drive.google.com/uc?export=download&id=1gbhYtzSBX9iKtYXS2hla9d76FJyzsM9M" 
+              className="block px-3 py-3 rounded-md text-lg font-medium text-gray-300 hover:text-white hover:bg-gray-800 border-b border-gray-800 last:border-0 flex items-center gap-2"
+            >
+              <Download size={18} /> Download Catalog
+            </a>
             <MobileNavLink to="/contact" text="Get Quote" onClick={() => setIsOpen(false)} />
           </div>
         </div>

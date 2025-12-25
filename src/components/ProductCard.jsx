@@ -52,9 +52,13 @@ const ProductCard = ({ product }) => {
         {/* Content Area */}
         <div className="p-5 flex flex-col flex-grow">
           <h3 className="text-lg font-bold text-gray-900 mb-2">{product.name}</h3>
-          <p className="text-gray-500 text-sm line-clamp-2 mb-4 flex-grow">
-            {product.description || "Premium GRC architectural element designed for durability and aesthetics."}
-          </p>
+          
+          {/* REMOVED: The generic fallback text is gone. If no desc, this is empty. */}
+          {product.description && (
+            <p className="text-gray-500 text-sm line-clamp-2 mb-4 flex-grow">
+              {product.description}
+            </p>
+          )}
           
           <Link 
             to="/contact" 

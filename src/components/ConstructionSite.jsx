@@ -15,45 +15,53 @@ const ConstructionSite = () => {
     {
       id: 0,
       title: "Design Analysis",
-      desc: "Analyzing CAD drawings for GRC Dome scope.",
-      icon: <Ruler size={18} />,
+      desc: "Analyzing CAD drawings for complete GRC scope.",
+      icon: <Ruler size={20} />,
       color: "bg-blue-600",
-      bg: "bg-blue-50",
+      activeBg: "bg-blue-50", // Added background color for active state
+      border: "border-blue-200",
+      activeBorder: "border-blue-500",
       animation: <BlueprintAnimation isActive={activeStep === 0} />
     },
     {
       id: 1,
-      title: "Mould Creation",
-      desc: "Fabricating intricate moulds for Jali & cornices.",
-      icon: <PenTool size={18} />,
+      title: "Mould & Material",
+      desc: "Fabricating intricate moulds & preparing premium GRC mix.",
+      icon: <PenTool size={20} />,
       color: "bg-purple-600",
-      bg: "bg-purple-50",
+      activeBg: "bg-purple-50",
+      border: "border-purple-200",
+      activeBorder: "border-purple-500",
       animation: <MouldAnimation isActive={activeStep === 1} />
     },
     {
       id: 2,
       title: "Logistics",
-      desc: "Safe transport of cured panels to the site.",
-      icon: <Truck size={18} />,
+      // CHANGED: Updated text as requested
+      desc: "Sit back we’ve got your transportation covered.",
+      icon: <Truck size={20} />,
       color: "bg-orange-600",
-      bg: "bg-orange-50",
+      activeBg: "bg-orange-50",
+      border: "border-orange-200",
+      activeBorder: "border-orange-500",
       animation: <TransportAnimation isActive={activeStep === 2} />
     },
     {
       id: 3,
-      title: "Installation Done by our team",
+      title: "Installation",
       desc: "In-house skilled labor ensuring precision assembly.",
-      icon: <Hammer size={18} />,
+      icon: <Hammer size={20} />,
       color: "bg-green-600",
-      bg: "bg-green-50",
+      activeBg: "bg-green-50",
+      border: "border-green-200",
+      activeBorder: "border-green-500",
       animation: <InstallationAnimation isActive={activeStep === 3} />
     }
   ];
 
   return (
-    // Technical Grid Background
     <div 
-      className="w-full py-12 border-y border-gray-300 relative bg-slate-50"
+      className="w-full py-16 border-y border-gray-200 relative bg-slate-50"
       style={{
         backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)',
         backgroundSize: '24px 24px'
@@ -64,13 +72,13 @@ const ConstructionSite = () => {
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-block bg-white/80 backdrop-blur-sm px-6 py-2 rounded-full border border-gray-200 shadow-sm mb-4">
-            <span className="text-brand-gold font-bold tracking-widest uppercase text-xs block">
-              Our Workflow
+        <div className="text-center mb-12">
+          <div className="inline-block bg-white/90 backdrop-blur-sm px-6 py-2 rounded-full border border-gray-300 shadow-sm mb-4">
+            <span className="text-brand-gold font-extrabold tracking-widest uppercase text-xs block">
+              Our Process
             </span>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 drop-shadow-sm">
+          <h2 className="text-4xl font-bold text-gray-900 drop-shadow-sm">
             From Drawing to Structure
           </h2>
         </div>
@@ -81,41 +89,44 @@ const ConstructionSite = () => {
             <div 
               key={step.id}
               onClick={() => setActiveStep(step.id)}
-              className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-500 group bg-white ${
+              className={`relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-500 group shadow-md ${
                 activeStep === step.id 
-                  ? `border-brand-gold shadow-xl scale-105 ring-4 ring-brand-gold/10` 
-                  : 'border-transparent shadow-md hover:shadow-lg hover:-translate-y-1'
+                  ? `${step.activeBg} ring-4 ring-offset-2 ring-${step.color.replace('bg-', '')}/20 scale-105 z-10 border-2 ${step.activeBorder}` 
+                  : `bg-white hover:-translate-y-1 hover:shadow-xl border border-gray-100`
               }`}
             >
               {/* Animation Viewport */}
-              <div className="h-32 w-full relative overflow-hidden border-b border-gray-100 bg-gray-50">
+              <div className="h-40 w-full relative overflow-hidden border-b border-gray-200/50">
                 {step.animation}
               </div>
 
               {/* Content Area */}
-              <div className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`p-1.5 rounded text-white shadow-sm transition-colors ${
-                    activeStep === step.id ? step.color : 'bg-gray-400'
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`p-2 rounded-lg text-white shadow-md transition-colors ${
+                    activeStep === step.id ? step.color : 'bg-gray-500'
                   }`}>
                     {step.icon}
                   </div>
-                  <h3 className={`font-bold text-sm leading-tight ${
-                    activeStep === step.id ? 'text-gray-900' : 'text-gray-500'
+                  <h3 className={`font-bold text-lg leading-tight ${
+                    activeStep === step.id ? 'text-gray-900' : 'text-gray-600'
                   }`}>
                     {step.title}
                   </h3>
                 </div>
                 
-                <p className="text-xs text-gray-500 leading-relaxed min-h-[32px]">
+                {/* CHANGED: Darker text color (text-slate-700) for better visibility */}
+                <p className={`text-sm leading-relaxed min-h-[40px] font-semibold ${
+                   activeStep === step.id ? 'text-slate-800' : 'text-slate-500'
+                }`}>
                   {step.desc}
                 </p>
 
                 {/* Active Indicator */}
-                <div className={`mt-3 flex items-center text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
+                <div className={`mt-4 flex items-center text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
                   activeStep === step.id ? 'text-brand-gold opacity-100' : 'opacity-0'
                 }`}>
-                  <CheckCircle2 size={12} className="mr-1 animate-pulse" /> Active Stage
+                  <CheckCircle2 size={14} className="mr-1.5 animate-pulse" /> Active Stage
                 </div>
               </div>
             </div>
@@ -162,7 +173,6 @@ const MouldAnimation = ({ isActive }) => (
 
 const TransportAnimation = ({ isActive }) => (
   <div className="w-full h-full flex flex-col justify-end bg-orange-50 overflow-hidden relative pb-2">
-    {/* REMOVED: The "Factory" text div has been deleted from here */}
     <div className={`absolute bottom-3 transition-all duration-[4000ms] linear flex items-end z-10 ${isActive ? 'left-[120%]' : 'left-[-120px]'}`}>
       <div className="w-24 h-5 bg-gray-700 relative flex items-end -mr-1">
           <div className="absolute bottom-5 left-2 flex gap-1">
