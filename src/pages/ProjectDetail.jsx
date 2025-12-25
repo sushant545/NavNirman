@@ -50,7 +50,7 @@ const ProjectDetail = () => {
     );
   }
 
-  // --- MOCK DATA ---
+  // --- DYNAMIC DATA MAPPING ---
   const overview = {
     client: project.client || "Private Client",
     architect: project.architect || "Design Well India Pvt. Ltd.",
@@ -59,21 +59,22 @@ const ProjectDetail = () => {
     year: project.year || "2024",
   };
 
+  // Try to read specific columns from sheet, otherwise use default
   const techSpecs = [
-    { property: "Material Grade", value: "GRC-1200 High Performance" },
-    { property: "Panel Thickness", value: "15mm - 25mm (Variable)" },
-    { property: "Surface Finish", value: "Sandblasted / Acid Etched" },
-    { property: "Tensile Strength", value: "> 10 MPa (LOP)" },
-    { property: "Fire Rating", value: "Class A1 (Non-Combustible)" },
-    { property: "Fixing System", value: "Concealed SS304 Anchors" },
+    { property: "Material Grade", value: project.spec_grade || "GRC-1200 High Performance" },
+    { property: "Panel Thickness", value: project.spec_thickness || "15mm - 25mm (Variable)" },
+    { property: "Surface Finish", value: project.spec_finish || "Sandblasted / Acid Etched" },
+    { property: "Tensile Strength", value: project.spec_tensile || "> 10 MPa (LOP)" },
+    { property: "Fire Rating", value: project.spec_fire || "Class A1 (Non-Combustible)" },
+    { property: "Fixing System", value: project.spec_fixing || "Concealed SS304 Anchors" },
   ];
 
   const productsList = project.products_used 
-    ? project.products_used.split(',') 
+    ? project.products_used.split(',').map(p => p.trim()) 
     : ["GRC Jali Screens", "Decorative Cornices", "Column Capitals", "3D Cladding Panels"];
 
   const galleryImages = project.gallery_images 
-    ? project.gallery_images.split(',') 
+    ? project.gallery_images.split(',').map(url => url.trim()) 
     : [
        project.image_url,
        "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=2070",
@@ -105,7 +106,7 @@ const ProjectDetail = () => {
             />
           </div>
 
-          {/* RIGHT: Header Info (Clean) */}
+          {/* RIGHT: Header Info */}
           <div className="flex flex-col justify-center">
             <span className="text-brand-gold font-bold tracking-widest uppercase text-sm mb-4 block">
               {project.category || "Architectural Landmark"}
@@ -129,15 +130,20 @@ const ProjectDetail = () => {
           {/* LEFT COLUMN (Content) - Spans 8 cols */}
           <div className="lg:col-span-8 space-y-12">
             
-            {/* About Text */}
+            {/* About Text with INTRO PARAGRAPH */}
             <div>
                <h2 className="text-3xl font-bold text-gray-900 mb-6">About the Project</h2>
                <div className="prose prose-lg text-gray-600 leading-relaxed text-justify">
-                  <p>{project.description || "This landmark project exemplifies NavNirman's capability to deliver complex GRC solutions. The facade features a blend of classical and modern elements, utilizing high-performance Glass Reinforced Concrete to achieve intricate geometries that traditional materials could not support. Our team worked closely with the architects to ensure every detail, from the structural cladding to the decorative jali work, was executed to perfection."}</p>
+                  {/* Dynamic Intro */}
+                  <p className="mb-4">
+                    NavNirman is honoured to have been a part of the construction of the iconic <strong>{project.name}</strong>{project.location ? ` in ${project.location}` : ''}. This grand structure is a perfect blend of modern functionality and classical architectural elements, emphasising strength, authority, and professionalism.
+                  </p>
+                  {/* Original Description from Sheet */}
+                  <p>{project.description || "The facade features a blend of classical and modern elements, utilizing high-performance Glass Reinforced Concrete to achieve intricate geometries that traditional materials could not support. Our team worked closely with the architects to ensure every detail, from the structural cladding to the decorative jali work, was executed to perfection."}</p>
                </div>
             </div>
 
-            {/* Products Implemented (Moved Here) */}
+            {/* Products Implemented */}
             <div>
                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                  <Box className="text-brand-gold" size={24} /> Products Implemented
@@ -150,15 +156,13 @@ const ProjectDetail = () => {
                    >
                      <div className="flex items-center z-10">
                         <div className="h-2 w-2 rounded-full bg-brand-gold mr-4 transition-all duration-300 group-hover:scale-150"></div>
-                        <span className="font-bold text-gray-700 text-base group-hover:text-brand-dark transition-colors">{prod.trim()}</span>
+                        <span className="font-bold text-gray-700 text-base group-hover:text-brand-dark transition-colors">{prod}</span>
                      </div>
                      
-                     {/* Interactive Icon */}
                      <div className="text-gray-300 transform translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-brand-gold">
                         <ArrowRight size={18} />
                      </div>
                      
-                     {/* Subtle Background Decoration */}
                      <div className="absolute right-0 top-0 h-full w-1 bg-brand-gold transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"></div>
                    </div>
                  ))}
@@ -275,7 +279,6 @@ const ProjectDetail = () => {
   );
 };
 
-// Helper Component for Overview Items (Vertical/Sidebar Style)
 const OverviewItem = ({ icon, label, value }) => (
   <div className="flex items-start gap-4">
     <div className="text-brand-gold mt-1 p-2 bg-brand-gold/10 rounded-lg shrink-0">

@@ -119,7 +119,7 @@ const ProjectCard = ({ project }) => {
             <MapPin size={14} className="mr-1" /> {project.location || 'India'}
           </div>
           <div className="mt-4 pt-4 border-t border-white/20 flex justify-between text-white translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-200">
-            <span className="text-xs font-bold uppercase">View Working Log</span>
+            <span className="text-xs font-bold uppercase">View Project Detail</span>
             <ArrowUpRight size={18} />
           </div>
         </div>
