@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { User, Lock, Calendar, CheckCircle, DollarSign, Users, Briefcase, ChevronDown, Search, Filter, FileText } from 'lucide-react';
+import { User, Lock, Calendar, CheckCircle, DollarSign, Users, Briefcase, ChevronDown, Search, Filter, FileText, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // YOUR CORRECT WEB APP URL
 const API_URL = 'https://script.google.com/macros/s/AKfycbyA8NjJ03yjJIOHQNRFeFAaq85EHKoMkVjPnONxJRW2z7BmEcpRKnWQipW9o94gDvkccA/exec';
@@ -9,12 +11,12 @@ const AdminPortal = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Data Store
   const [employees, setEmployees] = useState([]);
   const [attendanceLogs, setAttendanceLogs] = useState([]);
   const [transactionLogs, setTransactionLogs] = useState([]);
-  
+
   const [activeTab, setActiveTab] = useState('attendance'); // 'attendance', 'payroll', 'detail'
 
   // --- 1. ADMIN LOGIN ---
@@ -25,15 +27,15 @@ const AdminPortal = () => {
       method: 'POST',
       body: JSON.stringify({ action: 'adminLogin', password: password })
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === 'success') {
-        setIsAdmin(true);
-        fetchData(); 
-      } else { setError("Invalid Password"); }
-    })
-    .catch(() => setError("Connection Failed"))
-    .finally(() => setLoading(false));
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setIsAdmin(true);
+          fetchData();
+        } else { setError("Invalid Password"); }
+      })
+      .catch(() => setError("Connection Failed"))
+      .finally(() => setLoading(false));
   };
 
   // --- 2. FETCH DATA ---
@@ -43,15 +45,15 @@ const AdminPortal = () => {
       method: 'POST',
       body: JSON.stringify({ action: 'getData' })
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === 'success') {
-        setEmployees(data.employees);
-        setAttendanceLogs(data.attendance_logs);
-        setTransactionLogs(data.transaction_logs);
-      }
-    })
-    .finally(() => setLoading(false));
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setEmployees(data.employees);
+          setAttendanceLogs(data.attendance_logs);
+          setTransactionLogs(data.transaction_logs);
+        }
+      })
+      .finally(() => setLoading(false));
   };
 
   // --- 3. CALCULATE LIVE PAYROLL STATS ---
@@ -113,7 +115,7 @@ const AdminPortal = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        
+
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <StatBox label="Active Staff" value={employees.length} icon={<Users size={18} />} />
@@ -125,7 +127,7 @@ const AdminPortal = () => {
         {/* Tabs */}
         <div className="flex gap-4 border-b border-gray-200 mb-6 overflow-x-auto">
           {['attendance', 'payroll', 'detail'].map(tab => (
-            <button 
+            <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`pb-3 px-3 text-sm font-bold border-b-2 transition-colors capitalize whitespace-nowrap ${activeTab === tab ? 'border-brand-gold text-brand-dark' : 'border-transparent text-gray-400'}`}
@@ -196,7 +198,7 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
 
   // 1. FILTER EMPLOYEES
   const uniqueSites = useMemo(() => ['All', ...new Set(employees.map(e => e.current_site || 'Unassigned'))], [employees]);
-  
+
   const filteredEmployees = useMemo(() => {
     return employees.filter(emp => siteFilter === 'All' || emp.current_site === siteFilter);
   }, [employees, siteFilter]);
@@ -204,7 +206,7 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
   // 2. CALCULATE MONTHLY STATS FOR SELECTED EMPLOYEE
   const empStats = useMemo(() => {
     if (!selectedEmp) return null;
-    
+
     // Filter logs by Employee AND Month
     const monthlyAttendance = attendanceLogs.filter(log => {
       const logDate = new Date(log.date);
@@ -212,7 +214,7 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
     });
 
     const totalEarned = monthlyAttendance.reduce((sum, log) => sum + (log.earnings || 0), 0);
-    
+
     // Calculate Advances (assuming transactionLogs has dates)
     const totalAdvance = transactionLogs
       .filter(log => String(log.emp_id) === String(selectedEmp)) // Add month check if trans has dates
@@ -223,6 +225,49 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
 
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+  const handleDownloadPDF = () => {
+    if (!selectedEmp || !empStats) return;
+
+    const doc = new jsPDF();
+    const empName = employees.find(e => String(e.id) === String(selectedEmp))?.name || "Employee";
+    const monthName = months[monthFilter];
+
+    // -- HEADER --
+    doc.setFontSize(18);
+    doc.text("NavNirman - Employee Report", 14, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Employee: ${empName}`, 14, 30);
+    doc.text(`Period: ${monthName} ${new Date().getFullYear()}`, 14, 36);
+
+    // -- SUMMARY --
+    doc.setDrawColor(200);
+    doc.line(14, 42, 196, 42);
+
+    doc.setFontSize(10);
+    doc.text(`Total Earnings: ${empStats.totalEarned}`, 14, 50);
+    doc.text(`Advances Taken: ${empStats.totalAdvance}`, 80, 50);
+    doc.text(`Net Payable: ${empStats.totalEarned - empStats.totalAdvance}`, 140, 50);
+
+    // -- TABLE --
+    const tableData = empStats.logs.map(log => [
+      new Date(log.date).toLocaleDateString(),
+      log.location,
+      log.status,
+      log.earnings
+    ]);
+
+    autoTable(doc, {
+      startY: 60,
+      head: [['Date', 'Location', 'Status', 'Daily Earning']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [212, 175, 55] }, // brand-gold approx
+    });
+
+    doc.save(`${empName}_${monthName}_Report.pdf`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Filters Toolbar */}
@@ -230,20 +275,20 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
         <div className="flex-1">
           <label className="text-[10px] font-bold text-gray-400 uppercase mb-1">Filter Site</label>
           <select className="w-full p-2 bg-gray-50 rounded-lg text-sm border border-gray-200" value={siteFilter} onChange={e => setSiteFilter(e.target.value)}>
-             {uniqueSites.map(s => <option key={s} value={s}>{s}</option>)}
+            {uniqueSites.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
         <div className="flex-[2]">
           <label className="text-[10px] font-bold text-gray-400 uppercase mb-1">Select Employee</label>
           <select className="w-full p-2 bg-gray-50 rounded-lg text-sm border border-gray-200" value={selectedEmp} onChange={e => setSelectedEmp(e.target.value)}>
-             <option value="">-- Select --</option>
-             {filteredEmployees.map(e => <option key={e.id} value={e.id}>{e.name} ({e.current_site})</option>)}
+            <option value="">-- Select --</option>
+            {filteredEmployees.map(e => <option key={e.id} value={e.id}>{e.name} ({e.current_site})</option>)}
           </select>
         </div>
         <div className="flex-1">
           <label className="text-[10px] font-bold text-gray-400 uppercase mb-1">Select Month</label>
           <select className="w-full p-2 bg-gray-50 rounded-lg text-sm border border-gray-200" value={monthFilter} onChange={e => setMonthFilter(Number(e.target.value))}>
-             {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
+            {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
           </select>
         </div>
       </div>
@@ -268,17 +313,23 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
 
           {/* Detailed Table */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 font-bold text-gray-700">
-              Detailed Log for {months[monthFilter]}
+            <div className="px-6 py-4 border-b border-gray-100 font-bold text-gray-700 flex justify-between items-center">
+              <span>Detailed Log for {months[monthFilter]}</span>
+              <button
+                onClick={handleDownloadPDF}
+                className="flex items-center gap-2 bg-brand-dark text-white px-3 py-1.5 rounded-lg text-xs hover:bg-brand-gold transition-colors"
+              >
+                <Download size={14} /> Download PDF
+              </button>
             </div>
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50 text-gray-500">
-                 <tr>
-                   <th className="px-6 py-3">Date</th>
-                   <th className="px-6 py-3">Location</th>
-                   <th className="px-6 py-3">Status</th>
-                   <th className="px-6 py-3 text-right">Daily Earning</th>
-                 </tr>
+                <tr>
+                  <th className="px-6 py-3">Date</th>
+                  <th className="px-6 py-3">Location</th>
+                  <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3 text-right">Daily Earning</th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {empStats.logs.length > 0 ? (
@@ -332,8 +383,8 @@ const AttendanceForm = ({ employees, apiUrl }) => {
   const filteredEmployees = useMemo(() => {
     return employees.filter(emp => {
       const matchesSite = siteFilter === 'All' || emp.current_site === siteFilter;
-      const matchesSearch = emp.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            (emp.current_site && emp.current_site.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesSearch = emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (emp.current_site && emp.current_site.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesSite && matchesSearch;
     });
   }, [employees, siteFilter, searchQuery]);
@@ -357,19 +408,19 @@ const AttendanceForm = ({ employees, apiUrl }) => {
         ...formData
       };
 
-      fetch(apiUrl, { 
+      fetch(apiUrl, {
         method: 'POST',
         redirect: "follow",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload) 
+        body: JSON.stringify(payload)
       })
-      .then(res => res.json())
-      .then(data => {
-        if(data.status === 'success') setMsg(`✅ Marked: ${employeeData.name}`);
-        else setMsg('❌ Failed: ' + data.message);
-      })
-      .catch(() => setMsg('❌ Network Error'))
-      .finally(() => setSubmitting(false));
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') setMsg(`✅ Marked: ${employeeData.name}`);
+          else setMsg('❌ Failed: ' + data.message);
+        })
+        .catch(() => setMsg('❌ Network Error'))
+        .finally(() => setSubmitting(false));
 
     } catch (error) {
       setMsg('❌ Error: ' + error.message);
@@ -386,18 +437,17 @@ const AttendanceForm = ({ employees, apiUrl }) => {
       <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 space-y-4">
         <div>
           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-             <Filter size={10} /> Filter by Site
+            <Filter size={10} /> Filter by Site
           </label>
           <div className="flex flex-wrap gap-2">
             {uniqueSites.map(site => (
               <button
                 key={site}
                 onClick={() => setSiteFilter(site)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-full border transition-all ${
-                  siteFilter === site 
-                  ? 'bg-brand-gold text-brand-dark border-brand-gold shadow-sm' 
+                className={`px-3 py-1.5 text-xs font-bold rounded-full border transition-all ${siteFilter === site
+                  ? 'bg-brand-gold text-brand-dark border-brand-gold shadow-sm'
                   : 'bg-white text-gray-500 border-gray-200 hover:border-brand-gold'
-                }`}
+                  }`}
               >
                 {site}
               </button>
@@ -406,7 +456,7 @@ const AttendanceForm = ({ employees, apiUrl }) => {
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-3 text-gray-400" size={16} />
-          <input 
+          <input
             type="text"
             placeholder="Search by Name or Site..."
             className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-gold outline-none"
@@ -433,36 +483,36 @@ const AttendanceForm = ({ employees, apiUrl }) => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="label">Date</label>
-            <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="input-field" />
+            <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="input-field" />
           </div>
           <div>
             <label className="label">Location</label>
             <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-200">
-               {['Factory', 'Offsite'].map(loc => (
-                 <button key={loc} onClick={() => setFormData({...formData, location: loc})} className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${formData.location === loc ? 'bg-white shadow text-brand-dark' : 'text-gray-400'}`}>{loc}</button>
-               ))}
+              {['Factory', 'Offsite'].map(loc => (
+                <button key={loc} onClick={() => setFormData({ ...formData, location: loc })} className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${formData.location === loc ? 'bg-white shadow text-brand-dark' : 'text-gray-400'}`}>{loc}</button>
+              ))}
             </div>
           </div>
         </div>
 
         <div>
-           <label className="label">Work Status</label>
-           <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-200">
-               {['Present', 'Half-Day', 'Absent'].map(stat => (
-                 <button key={stat} onClick={() => setFormData({...formData, status: stat})} className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${formData.status === stat ? 'bg-white shadow text-brand-dark' : 'text-gray-400'}`}>{stat}</button>
-               ))}
-            </div>
+          <label className="label">Work Status</label>
+          <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-200">
+            {['Present', 'Half-Day', 'Absent'].map(stat => (
+              <button key={stat} onClick={() => setFormData({ ...formData, status: stat })} className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${formData.status === stat ? 'bg-white shadow text-brand-dark' : 'text-gray-400'}`}>{stat}</button>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-           <div>
-             <label className="label">Regular Hours</label>
-             <input type="number" value={formData.reg_hours} onChange={e => setFormData({...formData, reg_hours: Number(e.target.value)})} className="input-field" />
-           </div>
-           <div>
-             <label className="label">OT Hours</label>
-             <input type="number" value={formData.ot_hours} onChange={e => setFormData({...formData, ot_hours: Number(e.target.value)})} className="input-field text-blue-600" />
-           </div>
+          <div>
+            <label className="label">Regular Hours</label>
+            <input type="number" value={formData.reg_hours} onChange={e => setFormData({ ...formData, reg_hours: Number(e.target.value) })} className="input-field" />
+          </div>
+          <div>
+            <label className="label">OT Hours</label>
+            <input type="number" value={formData.ot_hours} onChange={e => setFormData({ ...formData, ot_hours: Number(e.target.value) })} className="input-field text-blue-600" />
+          </div>
         </div>
 
         {msg && <div className={`text-center font-bold p-3 rounded-lg ${msg.includes('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{msg}</div>}
