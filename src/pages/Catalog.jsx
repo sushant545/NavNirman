@@ -41,6 +41,24 @@ const CATEGORIES = [
     title: 'Cornices & Moldings',
     description: 'The finishing touch: decorative borders for rooflines and ceilings.',
     image: 'https://i.pinimg.com/736x/e8/d3/cd/e8d3cdf3d42e01ba0c9b13e12624f4df.jpg'
+  },
+  {
+    id: 'GRC Mural',
+    title: 'Murals & Statue',
+    description: 'The finishing touch: decorative borders for rooflines and ceilings.',
+    image: 'https://i.pinimg.com/736x/a9/d8/bb/a9d8bbed1c2967bd988792cebe7c4077.jpg'
+  },
+  {
+    id: 'GRC Carving',
+    title: 'Wall Carvings',
+    description: 'The finishing touch: decorative borders for rooflines and ceilings.',
+    image: 'https://i.pinimg.com/736x/12/99/86/1299865f8cdf4c489a63444884ea4d5b.jpg'
+  },
+  {
+    id: 'GRC Planters',
+    title: 'Planters',
+    description: 'The finishing touch: decorative borders for rooflines and ceilings.',
+    image: 'https://i.pinimg.com/736x/06/f1/df/06f1df05b62e98b9b37bec759896df17.jpg'
   }
 ];
 
