@@ -412,7 +412,7 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
           <label className="text-[10px] font-bold text-gray-400 uppercase mb-1">Select Employee</label>
           <select className="w-full p-2 bg-gray-50 rounded-lg text-sm border border-gray-200" value={selectedEmp} onChange={e => setSelectedEmp(e.target.value)}>
             <option value="">-- Select --</option>
-            {filteredEmployees.map(e => <option key={e.id} value={e.id}>{e.name} ({e.current_site})</option>)}
+            {filteredEmployees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
           </select>
         </div>
         <div className="flex-1">
@@ -576,9 +576,7 @@ const AttendanceForm = ({ employees, apiUrl }) => {
         action: 'markAttendance',
         emp_id: selectedEmp,
         emp_name: employeeData.name,
-        rate_factory: employeeData.rate_factory,
-        rate_offsite: employeeData.rate_offsite,
-        rate_ot: employeeData.rate_ot,
+        monthly_salary: employeeData.monthly_salary, // NEW: Send Salary for Fac/Offsite calc
         ...formData
       };
 
@@ -648,7 +646,7 @@ const AttendanceForm = ({ employees, apiUrl }) => {
           <div className="relative">
             <select className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl appearance-none outline-none focus:ring-2 focus:ring-brand-gold font-bold text-gray-700" value={selectedEmp} onChange={(e) => setSelectedEmp(e.target.value)}>
               <option value="">-- Choose from {filteredEmployees.length} Results --</option>
-              {filteredEmployees.map(emp => <option key={emp.id} value={emp.id}>{emp.name} — {emp.current_site} ({emp.role})</option>)}
+              {filteredEmployees.map(emp => <option key={emp.id} value={emp.id}>{emp.name} ({emp.role})</option>)}
             </select>
             <ChevronDown className="absolute right-4 top-4 text-gray-400 pointer-events-none" size={20} />
           </div>
@@ -707,6 +705,8 @@ const AttendanceForm = ({ employees, apiUrl }) => {
 
 const TransactionForm = ({ employees, apiUrl, onSuccess }) => {
   const [selectedEmp, setSelectedEmp] = useState('');
+  const [siteFilter, setSiteFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     type: 'Advance',
@@ -716,6 +716,21 @@ const TransactionForm = ({ employees, apiUrl, onSuccess }) => {
   });
   const [msg, setMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // 1. DUPLICATED FILTERING LOGIC
+  const uniqueSites = useMemo(() => {
+    if (!employees.length) return ['All'];
+    return ['All', ...new Set(employees.map(e => e.current_site || 'Unassigned'))];
+  }, [employees]);
+
+  const filteredEmployees = useMemo(() => {
+    return employees.filter(emp => {
+      const matchesSite = siteFilter === 'All' || emp.current_site === siteFilter;
+      const matchesSearch = emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (emp.current_site && emp.current_site.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesSite && matchesSearch;
+    });
+  }, [employees, siteFilter, searchQuery]);
 
   const handleSubmit = () => {
     if (!selectedEmp) { setMsg('⚠️ Select an employee'); return; }
@@ -769,10 +784,43 @@ const TransactionForm = ({ employees, apiUrl, onSuccess }) => {
         <IndianRupee className="text-brand-gold" size={20} /> Record Transaction
       </h2>
 
+      {/* FILTER CONTROLS */}
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 space-y-4">
+        <div>
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+            <Filter size={10} /> Filter by Site
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {uniqueSites.map(site => (
+              <button
+                key={site}
+                onClick={() => setSiteFilter(site)}
+                className={`px-3 py-1.5 text-xs font-bold rounded-full border transition-all ${siteFilter === site
+                  ? 'bg-brand-gold text-brand-dark border-brand-gold shadow-sm'
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-brand-gold'
+                  }`}
+              >
+                {site}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+          <input
+            type="text"
+            placeholder="Search by Name or Site..."
+            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-gold outline-none"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
       <div className="space-y-6">
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
-            Select Employee
+            Select Employee ({filteredEmployees.length})
           </label>
           <div className="relative">
             <select
@@ -780,8 +828,8 @@ const TransactionForm = ({ employees, apiUrl, onSuccess }) => {
               value={selectedEmp}
               onChange={(e) => setSelectedEmp(e.target.value)}
             >
-              <option value="">-- Choose from {employees.length} Staff --</option>
-              {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name} ({emp.role})</option>)}
+              <option value="">-- Choose from {filteredEmployees.length} Results --</option>
+              {filteredEmployees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
             </select>
             <ChevronDown className="absolute right-4 top-4 text-gray-400 pointer-events-none" size={20} />
           </div>

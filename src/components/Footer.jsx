@@ -36,6 +36,7 @@ const Footer = () => {
               <FooterLink to="/projects" text="Projects" />
               <FooterLink to="/catalog" text="Product Catalog" />
               <FooterLink to="/contact" text="Contact Us" />
+              <FooterLink to="/admin" text="Admin Portal" />
             </ul>
           </div>
 
