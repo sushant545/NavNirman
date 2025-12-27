@@ -17,7 +17,7 @@ const AdminPortal = () => {
   const [attendanceLogs, setAttendanceLogs] = useState([]);
   const [transactionLogs, setTransactionLogs] = useState([]);
 
-  const [activeTab, setActiveTab] = useState('attendance'); // 'attendance', 'payroll', 'detail'
+  const [activeTab, setActiveTab] = useState('attendance'); // 'attendance', 'payroll', 'detail', 'transactions'
 
   // --- 1. ADMIN LOGIN ---
   const handleLogin = (e) => {
@@ -126,18 +126,19 @@ const AdminPortal = () => {
 
         {/* Tabs */}
         <div className="flex gap-4 border-b border-gray-200 mb-6 overflow-x-auto">
-          {['attendance', 'payroll', 'detail'].map(tab => (
+          {['attendance', 'transactions', 'payroll', 'detail'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`pb-3 px-3 text-sm font-bold border-b-2 transition-colors capitalize whitespace-nowrap ${activeTab === tab ? 'border-brand-gold text-brand-dark' : 'border-transparent text-gray-400'}`}
             >
-              {tab === 'detail' ? 'Employee Details' : tab === 'attendance' ? 'Mark Attendance' : 'Payroll Overview'}
+              {tab === 'detail' ? 'Employee Details' : tab === 'attendance' ? 'Mark Attendance' : tab === 'transactions' ? 'Log Transaction' : 'Payroll Overview'}
             </button>
           ))}
         </div>
 
         {activeTab === 'attendance' && <AttendanceForm employees={employees} apiUrl={API_URL} />}
+        {activeTab === 'transactions' && <TransactionForm employees={employees} apiUrl={API_URL} onSuccess={fetchData} />}
         {activeTab === 'payroll' && <PayrollTable payrollStats={payrollStats} />}
         {activeTab === 'detail' && <EmployeeDetailView employees={employees} attendanceLogs={attendanceLogs} transactionLogs={transactionLogs} />}
 
@@ -213,14 +214,19 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
       return String(log.emp_id) === String(selectedEmp) && logDate.getMonth() === Number(monthFilter);
     });
 
+    // Filter Transactions
+    const monthlyTransactions = transactionLogs.filter(log => {
+      const logDate = new Date(log.date);
+      return String(log.emp_id) === String(selectedEmp) && logDate.getMonth() === Number(monthFilter);
+    });
+
     const totalEarned = monthlyAttendance.reduce((sum, log) => sum + (log.earnings || 0), 0);
+    const totalPaidOut = monthlyTransactions.reduce((sum, log) => {
+      if (log.type === 'Advance' || log.type === 'Payment') return sum + (log.amount || 0);
+      return sum;
+    }, 0);
 
-    // Calculate Advances (assuming transactionLogs has dates)
-    const totalAdvance = transactionLogs
-      .filter(log => String(log.emp_id) === String(selectedEmp)) // Add month check if trans has dates
-      .reduce((sum, log) => sum + (log.amount || 0), 0);
-
-    return { totalEarned, totalAdvance, logs: monthlyAttendance };
+    return { totalEarned, totalPaidOut, logs: monthlyAttendance, transactions: monthlyTransactions };
   }, [selectedEmp, monthFilter, attendanceLogs, transactionLogs]);
 
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -232,38 +238,110 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
     const empName = employees.find(e => String(e.id) === String(selectedEmp))?.name || "Employee";
     const monthName = months[monthFilter];
 
+    // -- COLORS --
+    const COLOR_GOLD = [197, 160, 89]; // #c5a059
+    const COLOR_DARK = [26, 26, 26];   // #1a1a1a
+
     // -- HEADER --
-    doc.setFontSize(18);
-    doc.text("NavNirman - Employee Report", 14, 20);
+    doc.setFillColor(...COLOR_DARK);
+    doc.rect(0, 0, 210, 40, 'F');
 
-    doc.setFontSize(12);
-    doc.text(`Employee: ${empName}`, 14, 30);
-    doc.text(`Period: ${monthName} ${new Date().getFullYear()}`, 14, 36);
-
-    // -- SUMMARY --
-    doc.setDrawColor(200);
-    doc.line(14, 42, 196, 42);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(...COLOR_GOLD);
+    doc.text("NAV NIRMAN", 14, 20);
 
     doc.setFontSize(10);
-    doc.text(`Total Earnings: ${empStats.totalEarned}`, 14, 50);
-    doc.text(`Advances Taken: ${empStats.totalAdvance}`, 80, 50);
-    doc.text(`Net Payable: ${empStats.totalEarned - empStats.totalAdvance}`, 140, 50);
+    doc.setTextColor(255, 255, 255);
+    doc.text("Construction & Payroll Management", 14, 26);
 
-    // -- TABLE --
-    const tableData = empStats.logs.map(log => [
+    doc.setFontSize(14);
+    doc.text("EMPLOYEE STATEMENT", 196, 25, { align: 'right' });
+
+    // -- INFO SECTION --
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.text(`Employee: ${empName}`, 14, 55);
+    doc.text(`Period: ${monthName} ${new Date().getFullYear()}`, 14, 62);
+
+    // -- SUMMARY BOX --
+    doc.setDrawColor(...COLOR_GOLD);
+    doc.setLineWidth(1);
+    doc.rect(120, 48, 76, 25);
+
+    doc.setFontSize(10);
+    doc.text("Total Earnings:", 125, 55);
+    doc.text("Total Paid:", 125, 61);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Net Payable:", 125, 69);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Rs. ${empStats.totalEarned}`, 190, 55, { align: 'right' });
+    doc.text(`Rs. ${empStats.totalPaidOut}`, 190, 61, { align: 'right' });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(`Rs. ${empStats.totalEarned - empStats.totalPaidOut}`, 190, 69, { align: 'right' });
+
+    let currentY = 85;
+
+    // -- 1. ATTENDANCE TABLE --
+    doc.setFontSize(14);
+    doc.setTextColor(...COLOR_DARK);
+    doc.text("Attendance Record", 14, currentY);
+    currentY += 5;
+
+    const attendanceData = empStats.logs.map(log => [
       new Date(log.date).toLocaleDateString(),
       log.location,
       log.status,
-      log.earnings
+      log.reg_hours, // Added
+      log.ot_hours,  // Added
+      `Rs. ${log.earnings}`
     ]);
 
     autoTable(doc, {
-      startY: 60,
-      head: [['Date', 'Location', 'Status', 'Daily Earning']],
-      body: tableData,
+      startY: currentY,
+      head: [['Date', 'Location', 'Status', 'Reg Hrs', 'OT Hrs', 'Daily Earning']],
+      body: attendanceData,
       theme: 'grid',
-      headStyles: { fillColor: [212, 175, 55] }, // brand-gold approx
+      headStyles: { fillColor: COLOR_DARK, textColor: COLOR_GOLD, fontStyle: 'bold' },
+      styles: { fontSize: 9, cellPadding: 3 },
+      columnStyles: { 5: { halign: 'right', fontStyle: 'bold' } },
     });
+
+    currentY = doc.lastAutoTable.finalY + 15;
+
+    // -- 2. TRANSACTION TABLE --
+    doc.setFontSize(14);
+    doc.setTextColor(...COLOR_DARK);
+    doc.text("Transaction History (Advances & Payments)", 14, currentY);
+    currentY += 5;
+
+    const transactionData = empStats.transactions.map(log => [
+      new Date(log.date).toLocaleDateString(),
+      log.type,
+      log.payment_mode,
+      log.notes || '-',
+      `Rs. ${log.amount}`
+    ]);
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Date', 'Type', 'Mode', 'Notes', 'Amount']],
+      body: transactionData,
+      theme: 'grid',
+      headStyles: { fillColor: COLOR_GOLD, textColor: COLOR_DARK, fontStyle: 'bold' },
+      styles: { fontSize: 9, cellPadding: 3 },
+      columnStyles: { 4: { halign: 'right', fontStyle: 'bold' } },
+    });
+
+    // -- FOOTER --
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text("Generated by Nav Nirman Admin Portal", 105, pageHeight - 10, { align: 'center' });
 
     doc.save(`${empName}_${monthName}_Report.pdf`);
   };
@@ -302,51 +380,95 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
               <p className="text-2xl font-bold text-blue-900">₹{empStats.totalEarned.toLocaleString()}</p>
             </div>
             <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-              <p className="text-xs font-bold text-orange-400 uppercase">Advances Taken</p>
-              <p className="text-2xl font-bold text-orange-900">₹{empStats.totalAdvance.toLocaleString()}</p>
+              <p className="text-xs font-bold text-orange-400 uppercase">Paid (Advances + Salary)</p>
+              <p className="text-2xl font-bold text-orange-900">₹{empStats.totalPaidOut.toLocaleString()}</p>
             </div>
             <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-              <p className="text-xs font-bold text-green-400 uppercase">Net Payable (As of now)</p>
-              <p className="text-2xl font-bold text-green-900">₹{(empStats.totalEarned - empStats.totalAdvance).toLocaleString()}</p>
+              <p className="text-xs font-bold text-green-400 uppercase">Net Payable (Pending)</p>
+              <p className="text-2xl font-bold text-green-900">₹{(empStats.totalEarned - empStats.totalPaidOut).toLocaleString()}</p>
             </div>
           </div>
 
-          {/* Detailed Table */}
+          <div className="flex justify-end">
+            <button
+              onClick={handleDownloadPDF}
+              className="flex items-center gap-2 bg-brand-dark text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-brand-gold hover:text-brand-dark transition-all"
+            >
+              <Download size={20} /> Download Full Report (PDF)
+            </button>
+          </div>
+
+          {/* 1. ATTENDANCE TABLE */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 font-bold text-gray-700 flex justify-between items-center">
-              <span>Detailed Log for {months[monthFilter]}</span>
-              <button
-                onClick={handleDownloadPDF}
-                className="flex items-center gap-2 bg-brand-dark text-white px-3 py-1.5 rounded-lg text-xs hover:bg-brand-gold transition-colors"
-              >
-                <Download size={14} /> Download PDF
-              </button>
+            <div className="px-6 py-4 border-b border-gray-100 font-bold text-gray-700 bg-gray-50">
+              📅 Daily Log for {months[monthFilter]}
             </div>
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-gray-500">
+              <thead className="bg-white text-gray-500 border-b border-gray-100">
                 <tr>
                   <th className="px-6 py-3">Date</th>
                   <th className="px-6 py-3">Location</th>
                   <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3 text-center">Reg Hrs</th>
+                  <th className="px-6 py-3 text-center">OT Hrs</th>
                   <th className="px-6 py-3 text-right">Daily Earning</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {empStats.logs.length > 0 ? (
                   empStats.logs.map((log, idx) => (
-                    <tr key={idx}>
-                      <td className="px-6 py-3 font-medium">{new Date(log.date).toLocaleDateString()}</td>
-                      <td className="px-6 py-3">{log.location}</td>
+                    <tr key={idx} className="hover:bg-gray-50">
+                      <td className="px-6 py-3 font-medium text-gray-900">{new Date(log.date).toLocaleDateString()}</td>
+                      <td className="px-6 py-3 text-gray-500">{log.location}</td>
                       <td className="px-6 py-3">
                         <span className={`px-2 py-1 rounded text-xs font-bold ${log.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                           {log.status}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-right font-bold">₹{log.earnings}</td>
+                      <td className="px-6 py-3 text-center text-gray-900">{log.reg_hours}</td>
+                      <td className="px-6 py-3 text-center font-bold text-blue-600">{log.ot_hours}</td>
+                      <td className="px-6 py-3 text-right font-bold text-gray-900">₹{log.earnings}</td>
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan="4" className="text-center py-6 text-gray-400">No attendance records found for this month</td></tr>
+                  <tr><td colSpan="6" className="text-center py-6 text-gray-400">No attendance records found for this month</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 2. TRANSACTIONS TABLE */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 font-bold text-gray-700 bg-gray-50 flex items-center gap-2">
+              <DollarSign size={18} className="text-brand-gold" /> Transaction History
+            </div>
+            <table className="w-full text-left text-sm">
+              <thead className="bg-white text-gray-500 border-b border-gray-100">
+                <tr>
+                  <th className="px-6 py-3">Date</th>
+                  <th className="px-6 py-3">Type</th>
+                  <th className="px-6 py-3">Mode</th>
+                  <th className="px-6 py-3">Notes</th>
+                  <th className="px-6 py-3 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {empStats.transactions.length > 0 ? (
+                  empStats.transactions.map((log, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50">
+                      <td className="px-6 py-3 font-medium text-gray-900">{new Date(log.date).toLocaleDateString()}</td>
+                      <td className="px-6 py-3">
+                        <span className={`px-2 py-1 rounded text-xs font-bold border ${log.type === 'Advance' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                          {log.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 text-gray-500">{log.payment_mode}</td>
+                      <td className="px-6 py-3 text-gray-400 italic text-xs">{log.notes || '-'}</td>
+                      <td className="px-6 py-3 text-right font-bold text-gray-900">₹{log.amount}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr><td colSpan="5" className="text-center py-6 text-gray-400">No transactions this month</td></tr>
                 )}
               </tbody>
             </table>
@@ -519,6 +641,167 @@ const AttendanceForm = ({ employees, apiUrl }) => {
 
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-brand-dark text-white font-bold py-4 rounded-xl hover:bg-brand-gold hover:text-brand-dark transition-all shadow-lg flex justify-center items-center gap-2">
           {submitting ? 'Saving...' : 'Save Attendance Record'}
+        </button>
+      </div>
+
+      <style>{`
+        .label { display: block; font-size: 0.7rem; font-weight: 800; color: #a0aec0; text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+        .input-field { width: 100%; padding: 0.75rem; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; font-weight: 600; outline: none; transition: all; }
+        .input-field:focus { border-color: #D4AF37; background: white; }
+      `}</style>
+    </div>
+  );
+};
+
+const TransactionForm = ({ employees, apiUrl, onSuccess }) => {
+  const [selectedEmp, setSelectedEmp] = useState('');
+  const [formData, setFormData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    type: 'Advance',
+    amount: '',
+    paymentMode: 'Cash',
+    notes: ''
+  });
+  const [msg, setMsg] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = () => {
+    if (!selectedEmp) { setMsg('⚠️ Select an employee'); return; }
+    if (!formData.amount) { setMsg('⚠️ Enter amount'); return; }
+
+    setSubmitting(true);
+    setMsg('');
+
+    try {
+      const employeeData = employees.find(e => String(e.id) === String(selectedEmp));
+      if (!employeeData) throw new Error("Employee not found.");
+
+      const payload = {
+        action: 'logTransaction',
+        emp_id: selectedEmp,
+        emp_name: employeeData.name,
+        date: formData.date,
+        type: formData.type,
+        amount_out: Number(formData.amount),
+        payment_mode: formData.paymentMode,
+        notes: formData.notes
+      };
+
+      fetch(apiUrl, {
+        method: 'POST',
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            setMsg(`✅ Transaction Recorded: ₹${formData.amount} for ${employeeData.name}`);
+            setFormData({ ...formData, amount: '', notes: '' });
+            if (onSuccess) onSuccess();
+          }
+          else setMsg('❌ Failed: ' + data.message);
+        })
+        .catch(() => setMsg('❌ Network Error'))
+        .finally(() => setSubmitting(false));
+
+    } catch (error) {
+      setMsg('❌ Error: ' + error.message);
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 md:p-8 max-w-2xl mx-auto">
+      <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <DollarSign className="text-brand-gold" size={20} /> Record Transaction
+      </h2>
+
+      <div className="space-y-6">
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+            Select Employee
+          </label>
+          <div className="relative">
+            <select
+              className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl appearance-none outline-none focus:ring-2 focus:ring-brand-gold font-bold text-gray-700"
+              value={selectedEmp}
+              onChange={(e) => setSelectedEmp(e.target.value)}
+            >
+              <option value="">-- Choose from {employees.length} Staff --</option>
+              {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name} ({emp.role})</option>)}
+            </select>
+            <ChevronDown className="absolute right-4 top-4 text-gray-400 pointer-events-none" size={20} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="label">Date</label>
+            <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="input-field" />
+          </div>
+          <div>
+            <label className="label">Transaction Type</label>
+            <div className="relative">
+              <select
+                value={formData.type}
+                onChange={e => setFormData({ ...formData, type: e.target.value })}
+                className="input-field appearance-none"
+              >
+                <option>Advance</option>
+                <option>Payment</option>
+                <option>Expense</option>
+                <option>Bonus</option>
+              </select>
+              <ChevronDown className="absolute right-4 top-4 text-gray-400 pointer-events-none" size={16} />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="label">Amount (₹)</label>
+            <input
+              type="number"
+              placeholder="0.00"
+              value={formData.amount}
+              onChange={e => setFormData({ ...formData, amount: e.target.value })}
+              className="input-field text-lg"
+            />
+          </div>
+          <div>
+            <label className="label">Payment Mode</label>
+            <div className="relative">
+              <select
+                value={formData.paymentMode}
+                onChange={e => setFormData({ ...formData, paymentMode: e.target.value })}
+                className="input-field appearance-none"
+              >
+                <option>Cash</option>
+                <option>Online / UPI</option>
+                <option>Bank Transfer</option>
+                <option>Check</option>
+              </select>
+              <ChevronDown className="absolute right-4 top-4 text-gray-400 pointer-events-none" size={16} />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="label">Notes / Description</label>
+          <textarea
+            rows="3"
+            value={formData.notes}
+            onChange={e => setFormData({ ...formData, notes: e.target.value })}
+            className="input-field resize-none"
+            placeholder="Reason for advance..."
+          ></textarea>
+        </div>
+
+        {msg && <div className={`text-center font-bold p-3 rounded-lg ${msg.includes('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{msg}</div>}
+
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-brand-dark text-white font-bold py-4 rounded-xl hover:bg-brand-gold hover:text-brand-dark transition-all shadow-lg flex justify-center items-center gap-2">
+          {submitting ? 'Processing...' : 'Confirm Transaction'}
         </button>
       </div>
 
