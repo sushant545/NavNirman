@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { User, Lock, Calendar, CheckCircle, DollarSign, Users, Briefcase, ChevronDown, Search, Filter, FileText, Download } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { User, Lock, Calendar, CheckCircle, IndianRupee, DollarSign, Users, Briefcase, ChevronDown, Search, Filter, FileText, Download, RotateCw, LogOut } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -11,6 +11,7 @@ const AdminPortal = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   // Data Store
   const [employees, setEmployees] = useState([]);
@@ -19,31 +20,53 @@ const AdminPortal = () => {
 
   const [activeTab, setActiveTab] = useState('attendance'); // 'attendance', 'payroll', 'detail', 'transactions'
 
-  // --- 1. ADMIN LOGIN ---
+  // --- 0. PERSISTENT LOGIN & INITIAL FETCH ---
+  useEffect(() => {
+    const loggedIn = localStorage.getItem('adminLoggedIn');
+    if (loggedIn === 'true') {
+      setIsAdmin(true);
+      fetchData(); // Auto-fetch on restore
+    }
+  }, []);
+
+  // --- 1. LOGIN ADMIN ---
   const handleLogin = (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+
     fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'adminLogin', password: password })
+      method: "POST",
+      body: JSON.stringify({ action: "adminLogin", password: password })
     })
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
           setIsAdmin(true);
+          localStorage.setItem('adminLoggedIn', 'true');
           fetchData();
-        } else { setError("Invalid Password"); }
+        } else {
+          setError(data.message);
+        }
       })
-      .catch(() => setError("Connection Failed"))
+      .catch(() => setError("Network Error"))
       .finally(() => setLoading(false));
   };
 
-  // --- 2. FETCH DATA ---
+  const handleLogout = () => {
+    setIsAdmin(false);
+    localStorage.removeItem('adminLoggedIn');
+    setEmployees([]);
+    setAttendanceLogs([]);
+    setTransactionLogs([]);
+  };
+
+  // --- 2. FETCH DATA FROM GOOGLE SHEETS ---
   const fetchData = () => {
-    setLoading(true);
+    setRefreshing(true);
     fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'getData' })
+      method: "POST",
+      body: JSON.stringify({ action: "getData" })
     })
       .then(res => res.json())
       .then(data => {
@@ -53,7 +76,10 @@ const AdminPortal = () => {
           setTransactionLogs(data.transaction_logs);
         }
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setRefreshing(false);
+      });
   };
 
   // --- 3. CALCULATE LIVE PAYROLL STATS ---
@@ -103,47 +129,73 @@ const AdminPortal = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 pt-36">
-      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-36 z-20">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-100 font-sans pb-20">
+      {/* HEADER */}
+      <header className="bg-brand-dark text-white shadow-lg sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Briefcase className="text-brand-gold" size={24} />
-            <span className="font-bold text-gray-900 tracking-tight">Admin Console</span>
+            <div className="bg-brand-gold p-1.5 rounded-lg">
+              <Briefcase size={20} className="text-brand-dark" />
+            </div>
+            <h1 className="font-bold text-lg tracking-tight">NavNirman <span className="text-brand-gold">Admin</span></h1>
           </div>
-          <button onClick={() => setIsAdmin(false)} className="text-xs font-bold text-gray-500 hover:text-red-600">LOGOUT</button>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={fetchData}
+              disabled={refreshing}
+              className={`p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all ${refreshing ? 'animate-spin' : ''}`}
+              title="Refresh Data"
+            >
+              <RotateCw size={18} />
+            </button>
+            <button onClick={handleLogout} className="p-2 rounded-lg bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 transition-all" title="Logout">
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* TABS */}
+        <div className="bg-white border-b border-gray-200 text-gray-500 text-xs font-bold uppercase tracking-wider overflow-x-auto">
+          <div className="max-w-7xl mx-auto flex">
+            {[
+              { id: 'attendance', label: 'Daily Log', icon: CheckCircle },
+              { id: 'transactions', label: 'Log Transaction', icon: IndianRupee },
+              { id: 'payroll', label: 'Payroll Review', icon: Users },
+              { id: 'detail', label: 'Employee Details', icon: FileText }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 py-4 flex items-center justify-center gap-2 border-b-2 transition-all min-w-[140px]
+                  ${activeTab === tab.id ? 'border-brand-gold text-brand-dark bg-brand-gold/5' : 'border-transparent hover:text-brand-dark hover:bg-gray-50'}
+                `}
+              >
+                <tab.icon size={16} className={activeTab === tab.id ? 'text-brand-gold' : 'text-gray-400'} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </header>
 
+      <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <StatBox label="Active Staff" value={employees.length} icon={<Users size={18} />} />
-          <StatBox label="Total Due" value={`₹${totalDue.toLocaleString()}`} icon={<DollarSign size={18} />} color="text-red-600" />
+          <StatBox label="Total Due" value={`₹${totalDue.toLocaleString()}`} icon={<IndianRupee size={18} />} color="text-red-600" />
           <StatBox label="Total Paid" value={`₹${totalPaid.toLocaleString()}`} icon={<CheckCircle size={18} />} color="text-green-600" />
           <StatBox label="Pending OT" value="--" icon={<Calendar size={18} />} />
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-4 border-b border-gray-200 mb-6 overflow-x-auto">
-          {['attendance', 'transactions', 'payroll', 'detail'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 px-3 text-sm font-bold border-b-2 transition-colors capitalize whitespace-nowrap ${activeTab === tab ? 'border-brand-gold text-brand-dark' : 'border-transparent text-gray-400'}`}
-            >
-              {tab === 'detail' ? 'Employee Details' : tab === 'attendance' ? 'Mark Attendance' : tab === 'transactions' ? 'Log Transaction' : 'Payroll Overview'}
-            </button>
-          ))}
-        </div>
 
         {activeTab === 'attendance' && <AttendanceForm employees={employees} apiUrl={API_URL} />}
         {activeTab === 'transactions' && <TransactionForm employees={employees} apiUrl={API_URL} onSuccess={fetchData} />}
         {activeTab === 'payroll' && <PayrollTable payrollStats={payrollStats} />}
         {activeTab === 'detail' && <EmployeeDetailView employees={employees} attendanceLogs={attendanceLogs} transactionLogs={transactionLogs} />}
 
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
@@ -440,7 +492,7 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
           {/* 2. TRANSACTIONS TABLE */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 font-bold text-gray-700 bg-gray-50 flex items-center gap-2">
-              <DollarSign size={18} className="text-brand-gold" /> Transaction History
+              <IndianRupee size={18} className="text-brand-gold" /> Transaction History
             </div>
             <table className="w-full text-left text-sm">
               <thead className="bg-white text-gray-500 border-b border-gray-100">
@@ -714,7 +766,7 @@ const TransactionForm = ({ employees, apiUrl, onSuccess }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 md:p-8 max-w-2xl mx-auto">
       <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-        <DollarSign className="text-brand-gold" size={20} /> Record Transaction
+        <IndianRupee className="text-brand-gold" size={20} /> Record Transaction
       </h2>
 
       <div className="space-y-6">
