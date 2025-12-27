@@ -26,7 +26,7 @@ const Contact = () => {
     // ✅ CHANGED: Reduced padding from 'pt-48' to 'pt-36'
     // This exactly matches the h-36 navbar height, eliminating the white gap.
     <div className="min-h-screen bg-white pt-36">
-      
+
       {/* 1. HERO HEADER */}
       <div className="bg-gray-900 text-white py-20 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop')] bg-cover bg-center"></div>
@@ -43,33 +43,33 @@ const Contact = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-16">
         <div className="grid lg:grid-cols-2 gap-12">
-          
+
           {/* 2. LEFT COLUMN: INFO & MAP */}
           <div className="space-y-8">
-            
+
             {/* Contact Cards */}
             <div className="grid sm:grid-cols-2 gap-4">
-              <ContactCard 
-                icon={<Phone size={24} />} 
-                title="Call Us" 
-                content="+91 98765 43210" 
+              <ContactCard
+                icon={<Phone size={24} />}
+                title="Call Us"
+                content="+91 98765 43210"
                 sub="Mon-Sat, 9am - 6pm"
               />
-              <ContactCard 
-                icon={<Mail size={24} />} 
-                title="Email Us" 
-                content="info@navnirman.com" 
+              <ContactCard
+                icon={<Mail size={24} />}
+                title="Email Us"
+                content="info@navnirman.com"
                 sub="Online Support 24/7"
               />
-              <ContactCard 
-                icon={<MapPin size={24} />} 
-                title="Visit HQ" 
-                content="South Gurugram" 
-                sub="Plot 152, Village Rithoj"
+              <ContactCard
+                icon={<MapPin size={24} />}
+                title="Visit HQ"
+                content="Gurgaon"
+                sub="Plot 512, Block-C, Vatika Kunj"
               />
-              <a 
-                href="https://wa.me/919876543210" 
-                target="_blank" 
+              <a
+                href="https://wa.me/919876543210"
+                target="_blank"
                 rel="noreferrer"
                 className="bg-green-50 border border-green-200 p-6 rounded-xl flex flex-col items-center justify-center text-center hover:shadow-md transition-all cursor-pointer group"
               >
@@ -82,19 +82,19 @@ const Contact = () => {
             </div>
 
             {/* GOOGLE MAP EMBED - Rithoj, Gurugram */}
-        <div className="bg-gray-100 rounded-xl overflow-hidden h-80 shadow-inner border border-gray-200 relative group">
-              <iframe 
-                title="NavNirman Location" 
-                width="100%" 
-                height="100%" 
-                frameBorder="0" 
-                style={{ border: 0 }} 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3514.896798031448!2d77.059444!3d28.290833!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d23a1a1a1a1a1%3A0x1a1a1a1a1a1a1a1a!2sMohan%20Ram%20Mandir%2C%20Rithoj!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" 
-                allowFullScreen 
+            <div className="bg-gray-100 rounded-xl overflow-hidden h-80 shadow-inner border border-gray-200 relative group">
+              <iframe
+                title="NavNirman Location"
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                style={{ border: 0 }}
+                src="https://maps.google.com/maps?q=Plot+no+512,+block-C,+vatika+kunj,+rithoj+dhani,+Near+Maruti+kunj,+gurgaon+122102&t=&z=13&ie=UTF8&iwloc=&output=embed"
+                allowFullScreen
                 // ✅ CHANGED: Removed 'grayscale' and 'group-hover' classes
                 className="w-full h-full"
               ></iframe>
-              <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded shadow text-xs font-bold pointer-events-none">📍 NavNirman HQ (Rithoj)</div>
+              <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded shadow text-xs font-bold pointer-events-none">📍 NavNirman HQ</div>
             </div>
           </div>
 
@@ -120,46 +120,46 @@ const Contact = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Full Name <span className="text-red-500">*</span></label>
-                  <input 
-                    type="text" 
-                    name="name" 
-                    required 
+                  <input
+                    type="text"
+                    name="name"
+                    required
                     value={formData.name}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-gold focus:ring-1 focus:ring-brand-gold outline-none transition-all"
-                    placeholder="John Doe" 
+                    placeholder="John Doe"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Phone Number <span className="text-red-500">*</span></label>
-                  <input 
-                    type="tel" 
-                    name="phone" 
+                  <input
+                    type="tel"
+                    name="phone"
                     required
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-gold focus:ring-1 focus:ring-brand-gold outline-none transition-all"
-                    placeholder="+91 98..." 
+                    placeholder="+91 98..."
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Email Address <span className="text-red-500">*</span></label>
-                <input 
-                  type="email" 
-                  name="email" 
+                <input
+                  type="email"
+                  name="email"
                   required
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-gold focus:ring-1 focus:ring-brand-gold outline-none transition-all"
-                  placeholder="john@company.com" 
+                  placeholder="john@company.com"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Project Type</label>
-                <select 
+                <select
                   name="projectType"
                   value={formData.projectType}
                   onChange={handleChange}
@@ -175,18 +175,18 @@ const Contact = () => {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Project Details</label>
-                <textarea 
-                  name="message" 
-                  rows="4" 
+                <textarea
+                  name="message"
+                  rows="4"
                   value={formData.message}
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-gold focus:ring-1 focus:ring-brand-gold outline-none transition-all resize-none"
-                  placeholder="Tell us about the estimated area (sq. ft), location, or specific design requirements..." 
+                  placeholder="Tell us about the estimated area (sq. ft), location, or specific design requirements..."
                 ></textarea>
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="w-full bg-brand-dark text-white font-bold py-4 rounded-lg hover:bg-brand-gold hover:text-brand-dark transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
                 <Send size={18} /> Submit Request
@@ -196,15 +196,15 @@ const Contact = () => {
 
         </div>
       </div>
-      
+
       {/* 4. FAQ SECTION */}
       <div className="bg-gray-50 py-16 border-t border-gray-200">
         <div className="max-w-4xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-10 text-gray-900">Frequently Asked Questions</h2>
           <div className="space-y-4">
-             <FAQItem q="What is the typical lead time for a GRC project?" a="Standard projects typically require 3-4 weeks for mould fabrication and production, though this varies based on design complexity and volume." />
-             <FAQItem q="Do you provide installation services?" a="Yes, we have a specialized in-house team for GRC installation to ensure structural integrity and perfect alignment." />
-             <FAQItem q="Is GRC suitable for exterior use?" a="Absolutely. GRC is alkali-resistant, non-corrosive, and withstands extreme weather conditions better than traditional concrete." />
+            <FAQItem q="What is the typical lead time for a GRC project?" a="Standard projects typically require 3-4 weeks for mould fabrication and production, though this varies based on design complexity and volume." />
+            <FAQItem q="Do you provide installation services?" a="Yes, we have a specialized in-house team for GRC installation to ensure structural integrity and perfect alignment." />
+            <FAQItem q="Is GRC suitable for exterior use?" a="Absolutely. GRC is alkali-resistant, non-corrosive, and withstands extreme weather conditions better than traditional concrete." />
           </div>
         </div>
       </div>

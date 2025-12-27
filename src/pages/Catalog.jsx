@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useLocation } from 'react-router-dom'; // Added useLocation
 import ProductCard from '../components/ProductCard';
 import { fetchData } from '../utils/sheets';
 
@@ -64,8 +65,9 @@ const CATEGORIES = [
 
 const Catalog = () => {
   const [products, setProducts] = useState([]);
-  const [activeCategory, setActiveCategory] = useState(null); 
+  const [activeCategory, setActiveCategory] = useState(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation(); // Hook to access URL
 
   // 1. Fetch Data on Mount
   useEffect(() => {
@@ -74,10 +76,10 @@ const Catalog = () => {
       try {
         const data = await fetchData('products');
         if (!data || data.length === 0) {
-           const fallbackData = await fetchData('catalog');
-           setProducts(fallbackData || []);
+          const fallbackData = await fetchData('catalog');
+          setProducts(fallbackData || []);
         } else {
-           setProducts(data);
+          setProducts(data);
         }
       } catch (err) {
         console.error("Error fetching catalog:", err);
@@ -88,10 +90,20 @@ const Catalog = () => {
     loadData();
   }, []);
 
-  // 2. Helper to filter products
+  // 2. Handle URL Category Parameter
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryId = params.get('category');
+    if (categoryId) {
+      // Decode URI component just in case, though params.get handles most decoding
+      setActiveCategory(decodeURIComponent(categoryId));
+    }
+  }, [location.search]);
+
+  // 3. Helper to filter products
   const getFilteredProducts = () => {
     if (!activeCategory) return [];
-    
+
     const normalize = (str) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const target = normalize(activeCategory);
 
@@ -107,11 +119,11 @@ const Catalog = () => {
     // ✅ CHANGED: Increased 'pt-32' to 'pt-48' to clear the taller Navbar
     <div className="min-h-screen bg-white pt-48 pb-16">
       <div className="max-w-[1600px] mx-auto px-6">
-        
+
         {/* --- VIEW 1: CATEGORY SELECTION --- */}
         {!activeCategory && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             className="space-y-12"
@@ -130,14 +142,14 @@ const Catalog = () => {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {CATEGORIES.map((cat, index) => (
-                <div 
+                <div
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
                   className="group relative h-[400px] rounded-2xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500"
                 >
-                  <img 
-                    src={cat.image} 
-                    alt={cat.title} 
+                  <img
+                    src={cat.image}
+                    alt={cat.title}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
@@ -160,14 +172,14 @@ const Catalog = () => {
         {/* --- VIEW 2: PRODUCT LISTING --- */}
         {activeCategory && (
           <motion.div
-            initial={{ opacity: 0, x: 50 }} 
+            initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-8"
           >
             {/* Header with Back Button */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-100">
               <div>
-                <button 
+                <button
                   onClick={() => setActiveCategory(null)}
                   className="flex items-center gap-2 text-gray-500 hover:text-brand-dark mb-2 transition-colors group"
                 >
@@ -180,7 +192,7 @@ const Catalog = () => {
                   {CATEGORIES.find(c => c.id === activeCategory)?.title || activeCategory}
                 </h2>
               </div>
-              
+
               <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg font-medium text-sm">
                 Showing {filteredItems.length} Products
               </div>
