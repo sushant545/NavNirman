@@ -108,6 +108,7 @@ const AdminPortal = () => {
   // --- 4. GLOBAL STATS ---
   const totalDue = payrollStats.reduce((acc, curr) => acc + curr.balance, 0);
   const totalPaid = payrollStats.reduce((acc, curr) => acc + curr.total_paid, 0);
+  const totalOTHours = attendanceLogs.reduce((acc, curr) => acc + (Number(curr.ot_hours) || 0), 0);
 
   if (!isAdmin) {
     return (
@@ -185,7 +186,7 @@ const AdminPortal = () => {
           <StatBox label="Active Staff" value={employees.length} icon={<Users size={18} />} />
           <StatBox label="Total Due" value={`₹${totalDue.toLocaleString()}`} icon={<IndianRupee size={18} />} color="text-red-600" />
           <StatBox label="Total Paid" value={`₹${totalPaid.toLocaleString()}`} icon={<CheckCircle size={18} />} color="text-green-600" />
-          <StatBox label="Pending OT" value="--" icon={<Calendar size={18} />} />
+          <StatBox label="Total OT Hours" value={`${totalOTHours} Hrs`} icon={<Calendar size={18} />} />
         </div>
 
 
@@ -274,7 +275,7 @@ const EmployeeDetailView = ({ employees, attendanceLogs, transactionLogs }) => {
 
     const totalEarned = monthlyAttendance.reduce((sum, log) => sum + (log.earnings || 0), 0);
     const totalPaidOut = monthlyTransactions.reduce((sum, log) => {
-      if (log.type === 'Advance' || log.type === 'Payment') return sum + (log.amount || 0);
+      if (log.type === 'Advance' || log.type === 'Payment' || log.type === 'Expense') return sum + (log.amount || 0);
       return sum;
     }, 0);
 
@@ -851,7 +852,6 @@ const TransactionForm = ({ employees, apiUrl, onSuccess }) => {
                 <option>Advance</option>
                 <option>Payment</option>
                 <option>Expense</option>
-                <option>Bonus</option>
               </select>
               <ChevronDown className="absolute right-4 top-4 text-gray-400 pointer-events-none" size={16} />
             </div>
